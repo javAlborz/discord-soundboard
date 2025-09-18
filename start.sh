@@ -26,7 +26,7 @@ trap cleanup SIGINT SIGTERM
 
 echo "Starting backend server..."
 cd backend
-npm run dev &
+PORT=3051 npm start &
 BACKEND_PID=$!
 
 echo "Starting frontend..."
@@ -41,7 +41,7 @@ echo "To start the Discord bot, run in another terminal:"
 echo "uv run python bot/main.py"
 echo ""
 echo "Dashboard will be available at: http://localhost:3000"
-echo "API will be available at: http://localhost:3001"
+echo "API will be available at: http://localhost:3051"
 echo ""
 echo "Press Ctrl+C to stop all services"
 

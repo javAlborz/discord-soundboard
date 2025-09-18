@@ -1,0 +1,46 @@
+{
+  "hotkeys": [
+    {
+      "id": "7f4fbe4c-d872-40f4-b504-5d7ecbfef5b9",
+      "name": "Test Hotkey",
+      "soundFile": "test.mp3",
+      "keyCode": 65,
+      "modifiers": {
+        "ctrl": true,
+        "alt": false,
+        "shift": false
+      },
+      "enabled": true,
+      "createdAt": "2025-09-18T19:07:17.325Z",
+      "updatedAt": "2025-09-18T19:07:17.325Z"
+    },
+    {
+      "id": "8a01566d-f260-4420-98ae-68825b7d0f75",
+      "name": "Quick: god-did",
+      "soundFile": "god-did.mp3",
+      "keyCode": 83,
+      "modifiers": {
+        "ctrl": true,
+        "alt": true,
+        "shift": false
+      },
+      "enabled": true,
+      "createdAt": "2025-09-18T19:18:52.780Z",
+      "updatedAt": "2025-09-18T19:18:52.780Z"
+    },
+    {
+      "id": "7bc98e73-f2d5-4865-9e5f-ccc4f93a5a19",
+      "name": "God Did Hotkey",
+      "soundFile": "god-did.mp3",
+      "keyCode": 71,
+      "modifiers": {
+        "ctrl": true,
+        "alt": true,
+        "shift": false
+      },
+      "enabled": true,
+      "createdAt": "2025-09-18T19:24:16.765Z",
+      "updatedAt": "2025-09-18T19:24:16.765Z"
+    }
+  ]
+}

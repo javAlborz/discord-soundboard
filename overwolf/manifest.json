@@ -1,0 +1,48 @@
+{
+  "manifest_version": 1,
+  "type": "WebApp",
+  "meta": {
+    "name": "Discord Soundboard Hotkeys",
+    "version": "1.0.0",
+    "minimum-overwolf-version": "0.77.10",
+    "author": "Discord Soundboard Team",
+    "icon": "assets/icon.png",
+    "icon_gray": "assets/icon_gray.png",
+    "description": "Global hotkeys for Discord Soundboard - trigger sounds instantly from any application"
+  },
+  "permissions": [
+    "Hotkeys",
+    "Extensions"
+  ],
+  "game_targeting": {
+    "type": "global"
+  },
+  "hotkeys": {
+    "soundboard_toggle": {
+      "title": "Toggle Soundboard Settings",
+      "action-type": "toggle",
+      "default": "Ctrl+Shift+S"
+    }
+  },
+  "windows": {
+    "background": {
+      "file": "background/background.html",
+      "is_background_page": true,
+      "run_as_background_page": true
+    },
+    "settings": {
+      "file": "windows/settings.html",
+      "transparent": true,
+      "resizable": false,
+      "size": {
+        "width": 600,
+        "height": 800
+      },
+      "min_size": {
+        "width": 500,
+        "height": 600
+      }
+    }
+  },
+  "start_window": "background"
+}

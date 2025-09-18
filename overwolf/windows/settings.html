@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Soundboard Hotkeys - Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <img src="../assets/icon.png" alt="Discord Soundboard" class="app-icon">
+                <h1>Discord Soundboard Hotkeys</h1>
+                <div class="window-controls">
+                    <button id="minimize-btn" class="control-btn">−</button>
+                    <button id="close-btn" class="control-btn">×</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Backend:</span>
+                    <span id="backend-status" class="status-value">Connecting...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Active Hotkeys:</span>
+                    <span id="hotkey-count" class="status-value">0</span>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="hotkeys">Hotkeys</button>
+                <button class="tab-btn" data-tab="sounds">Sounds</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- Hotkeys Tab -->
+                <div id="hotkeys-tab" class="tab-panel active">
+                    <div class="panel-header">
+                        <h2>Hotkey Management</h2>
+                        <button id="add-hotkey-btn" class="btn btn-primary">+ Add Hotkey</button>
+                    </div>
+
+                    <div class="hotkey-list" id="hotkey-list">
+                        <!-- Hotkeys will be populated here -->
+                    </div>
+
+                    <div class="hotkey-form" id="hotkey-form" style="display: none;">
+                        <h3 id="form-title">Add New Hotkey</h3>
+                        <form id="hotkey-form-element">
+                            <div class="form-group">
+                                <label for="hotkey-name">Name:</label>
+                                <input type="text" id="hotkey-name" placeholder="Enter hotkey name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sound-select">Sound:</label>
+                                <select id="sound-select" required>
+                                    <option value="">Select a sound...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Key Combination:</label>
+                                <div class="hotkey-recorder">
+                                    <div class="modifiers">
+                                        <label class="modifier-checkbox">
+                                            <input type="checkbox" id="ctrl-modifier"> Ctrl
+                                        </label>
+                                        <label class="modifier-checkbox">
+                                            <input type="checkbox" id="alt-modifier"> Alt
+                                        </label>
+                                        <label class="modifier-checkbox">
+                                            <input type="checkbox" id="shift-modifier"> Shift
+                                        </label>
+                                    </div>
+                                    <div class="key-input">
+                                        <input type="text" id="key-display" placeholder="Press a key..." readonly>
+                                        <input type="hidden" id="key-code">
+                                        <button type="button" id="record-key-btn" class="btn btn-secondary">Record Key</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="hotkey-enabled" checked> Enabled
+                                </label>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save Hotkey</button>
+                                <button type="button" id="cancel-hotkey-btn" class="btn btn-secondary">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sounds Tab -->
+                <div id="sounds-tab" class="tab-panel">
+                    <div class="panel-header">
+                        <h2>Available Sounds</h2>
+                        <button id="refresh-sounds-btn" class="btn btn-secondary">Refresh</button>
+                    </div>
+
+                    <div class="sounds-list" id="sounds-list">
+                        <!-- Sounds will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-panel">
+                    <div class="panel-header">
+                        <h2>Application Settings</h2>
+                    </div>
+
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="auto-start"> Start with Overwolf
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="show-notifications"> Show notifications
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="conflict-resolution">Conflict Resolution:</label>
+                            <select id="conflict-resolution">
+                                <option value="warn">Warn on conflicts</option>
+                                <option value="prevent">Prevent conflicts</option>
+                                <option value="override">Allow overrides</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+                            <button id="reset-settings-btn" class="btn btn-secondary">Reset to Defaults</button>
+                        </div>
+                    </div>
+
+                    <div class="danger-zone">
+                        <h3>Danger Zone</h3>
+                        <button id="clear-all-hotkeys-btn" class="btn btn-danger">Clear All Hotkeys</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Notification system -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <script src="../shared/utils.js"></script>
+    <script src="../shared/storage.js"></script>
+    <script src="../shared/api.js"></script>
+    <script src="settings.js"></script>
+</body>
+</html>

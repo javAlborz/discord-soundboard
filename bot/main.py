@@ -24,15 +24,15 @@ class SoundboardBot:
         guild = bot.get_guild(guild_id)
         if not guild:
             return False
-            
+
         channel = guild.get_channel(channel_id)
         if not channel or not isinstance(channel, discord.VoiceChannel):
             return False
-            
+
         try:
             voice_client = await channel.connect()
             self.voice_clients[guild_id] = voice_client
-            
+
             # Notify backend of voice connection update
             await self.update_voice_status()
             return True
@@ -88,6 +88,7 @@ class SoundboardBot:
 
 soundboard = SoundboardBot()
 
+
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -129,10 +130,10 @@ async def join_voice(ctx):
     if not ctx.author.voice:
         await ctx.send("You need to be in a voice channel!")
         return
-    
+
     channel = ctx.author.voice.channel
     success = await soundboard.connect_to_voice(ctx.guild.id, channel.id)
-    
+
     if success:
         await ctx.send(f"Joined {channel.name}")
     else:
@@ -168,7 +169,7 @@ async def on_voice_state_update(member, before, after):
     # If bot is alone in channel, leave
     if member == bot.user:
         return
-    
+
     for guild_id, voice_client in soundboard.voice_clients.items():
         if voice_client.channel and len(voice_client.channel.members) == 1:
             await soundboard.disconnect_from_voice(guild_id)
