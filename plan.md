@@ -1,338 +1,373 @@
-# Discord Soundboard App Implementation Plan
+# Overwolf Hotkey Integration Plan
 
-## Project Overview
+## Overview
 
-### Goal
-Build a third-party Discord soundboard application that allows users to trigger sound effects in voice channels through a web dashboard.
+This plan outlines the implementation of global hotkey functionality for the Discord Soundboard using Overwolf. Users will be able to trigger sound effects by pressing keyboard shortcuts instead of clicking buttons in the web dashboard.
 
-### Core Features
-- Web-based dashboard with sound buttons
-- Discord bot that joins voice channels and plays audio
-- Real-time sound playback with minimal latency
-- Multi-server support
-- Sound library management
+## Architecture Changes
 
-## Architecture
-
-### System Components
-
+### Current Architecture
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Web Dashboard  │────▶│  Backend API    │────▶│  Discord Bot    │
-│   (React/Vue)   │     │   (Node.js)     │     │  (discord.js)   │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-                               │                          │
-                               ▼                          ▼
-                        ┌─────────────┐          ┌─────────────┐
-                        │ Audio Files  │          │   Discord   │
-                        │  Storage     │          │   Servers   │
-                        └─────────────┘          └─────────────┘
+[React Frontend] → HTTP → [Node.js Backend] → Socket.io → [Python Discord Bot]
 ```
 
-### Tech Stack
+### New Architecture with Overwolf
+```
+[React Frontend] ←→ HTTP ←→ [Node.js Backend] ←→ Socket.io ←→ [Python Discord Bot]
+       ↑                           ↑
+   Configuration UI        Hotkey Configuration API
+                                   ↑
+                            HTTP (RESTful)
+                                   ↑
+[Overwolf App] ← Global Hotkeys ← [Windows OS]
+```
 
-- **Frontend**: React + Tailwind CSS + Socket.io-client
-- **Backend**: Node.js + Express + Socket.io
-- **Discord Bot**: discord.js + @discordjs/voice
-- **Database**: PostgreSQL (users, servers, sound metadata)
-- **Audio Storage**: Local filesystem → S3 (production)
-- **Authentication**: Discord OAuth2
-- **Deployment**: Docker + VPS/Cloud (DigitalOcean/AWS)
+## Components to Implement
 
-## Phase 1: MVP Development (Week 1-2)
+### 1. Overwolf Application (`overwolf/`)
 
-### 1.1 Discord Bot Setup
-**Goal**: Create a basic bot that can join voice channels and play audio files
+**Structure:**
+```
+overwolf/
+├── manifest.json          # App configuration and permissions
+├── background/
+│   ├── background.html    # Background window
+│   └── background.js      # Hotkey event handling
+├── windows/
+│   ├── settings.html      # Settings window
+│   ├── settings.js        # Hotkey configuration UI
+│   └── settings.css       # Styling
+├── shared/
+│   ├── api.js            # Backend communication
+│   ├── storage.js        # Local storage management
+│   └── utils.js          # Utility functions
+└── assets/
+    ├── icon.png          # App icon
+    └── logo.png          # Logo
+```
 
-**Tasks**:
-- [ ] Create Discord application and bot token
-- [ ] Set up Node.js project with discord.js
-- [ ] Implement voice channel join/leave functionality
-- [ ] Create audio player with @discordjs/voice
-- [ ] Test playing local audio files
-- [ ] Implement basic command handling (!play, !join, !leave)
+**Key Features:**
+- Background process for global hotkey detection
+- Settings window for hotkey configuration
+- Communication with backend API
+- Local storage for configuration caching
+- Conflict detection and resolution
 
-**Dependencies**:
+### 2. Backend API Extensions
+
+**New Endpoints:**
+- `GET /api/hotkeys` - Get all hotkey mappings
+- `POST /api/hotkeys` - Create new hotkey mapping
+- `PUT /api/hotkeys/:id` - Update hotkey mapping
+- `DELETE /api/hotkeys/:id` - Delete hotkey mapping
+- `POST /api/hotkeys/validate` - Validate hotkey combination
+- `GET /api/hotkeys/conflicts` - Check for conflicts
+
+**Database Schema (JSON file storage):**
 ```json
 {
-  "discord.js": "^14.x",
-  "@discordjs/voice": "^0.16.x",
-  "@discordjs/opus": "^0.9.x",
-  "ffmpeg-static": "^5.x",
-  "libsodium-wrappers": "^0.7.x"
+  "hotkeys": [
+    {
+      "id": "uuid",
+      "name": "Custom name",
+      "soundFile": "filename.mp3",
+      "keyCode": 75,
+      "modifiers": {
+        "ctrl": true,
+        "alt": false,
+        "shift": false
+      },
+      "enabled": true,
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    }
+  ]
 }
 ```
 
-### 1.2 Backend API
-**Goal**: Create REST/WebSocket API to control the bot
+### 3. Frontend Extensions
 
-**Tasks**:
-- [ ] Initialize Express server
-- [ ] Set up Socket.io for real-time communication
-- [ ] Create endpoints:
-  - POST /api/play - Trigger sound playback
-  - GET /api/sounds - List available sounds
-  - GET /api/servers - List bot's servers
-  - GET /api/channels/:serverId - List voice channels
-- [ ] Implement bot command queue system
-- [ ] Add basic error handling and logging
+**New Components:**
+- `HotkeyManager.js` - Main hotkey configuration interface
+- `HotkeyEditor.js` - Individual hotkey editor
+- `HotkeyRecorder.js` - Record hotkey combinations
+- `ConflictResolver.js` - Handle hotkey conflicts
 
-**Endpoints Structure**:
-```
-POST /api/play
+**Updated Components:**
+- `SoundBoard.js` - Add hotkey assignment buttons
+- `App.js` - Include hotkey management routes
+- New navigation tab for hotkey settings
+
+## Implementation Phases
+
+### Phase 1: Backend Hotkey API (Week 1)
+1. **Create hotkey data model and storage**
+   - Design JSON schema for hotkey mappings
+   - Implement file-based storage system
+   - Add data validation and sanitization
+
+2. **Implement REST API endpoints**
+   - CRUD operations for hotkey mappings
+   - Validation endpoints for hotkey combinations
+   - Conflict detection algorithms
+
+3. **Update existing sound play endpoint**
+   - Add hotkey-triggered flag to play requests
+   - Implement authentication for Overwolf app
+
+### Phase 2: Overwolf Application (Week 2)
+1. **Create Overwolf app structure**
+   - Set up manifest.json with global app targeting
+   - Create background and settings windows
+   - Implement basic UI structure
+
+2. **Implement hotkey detection**
+   - Register global hotkeys using Overwolf API
+   - Handle hotkey press events
+   - Implement sound trigger functionality
+
+3. **Build settings interface**
+   - Hotkey recording functionality
+   - Sound selection dropdown
+   - Enable/disable toggles
+   - Real-time conflict detection
+
+### Phase 3: Frontend Integration (Week 3)
+1. **Create hotkey management UI**
+   - Hotkey configuration dashboard
+   - Sound-to-hotkey assignment interface
+   - Bulk operations (enable/disable all)
+
+2. **Integrate with existing components**
+   - Add hotkey indicators to sound buttons
+   - Implement quick hotkey assignment
+   - Real-time status updates
+
+3. **Add user experience features**
+   - Hotkey preview functionality
+   - Usage statistics and analytics
+   - Import/export hotkey configurations
+
+### Phase 4: Testing and Polish (Week 4)
+1. **Comprehensive testing**
+   - Unit tests for hotkey detection
+   - Integration tests for API endpoints
+   - End-to-end testing with Overwolf
+
+2. **Performance optimization**
+   - Optimize hotkey detection latency
+   - Implement efficient conflict checking
+   - Background app resource usage optimization
+
+3. **Documentation and deployment**
+   - User guide for Overwolf app installation
+   - Developer documentation
+   - Deployment automation
+
+## Technical Implementation Details
+
+### Overwolf Manifest Configuration
+```json
 {
-  "soundId": "airhorn",
-  "serverId": "123456789",
-  "channelId": "987654321"
+  "manifest_version": 1,
+  "type": "WebApp",
+  "meta": {
+    "name": "Discord Soundboard Hotkeys",
+    "version": "1.0.0",
+    "minimum-overwolf-version": "0.77.10",
+    "author": "Your Name",
+    "icon": "assets/icon.png",
+    "icon_gray": "assets/icon_gray.png",
+    "description": "Global hotkeys for Discord Soundboard"
+  },
+  "permissions": [
+    "Hotkeys",
+    "Extensions"
+  ],
+  "game_targeting": {
+    "type": "global"
+  },
+  "hotkeys": {
+    "soundboard_toggle": {
+      "title": "Toggle Soundboard Settings",
+      "action-type": "toggle",
+      "default": "Ctrl+Shift+S"
+    }
+  },
+  "windows": {
+    "background": {
+      "file": "background/background.html",
+      "is_background_page": true,
+      "run_as_background_page": true
+    },
+    "settings": {
+      "file": "windows/settings.html",
+      "transparent": true,
+      "resizable": false,
+      "size": {
+        "width": 600,
+        "height": 800
+      },
+      "min_size": {
+        "width": 500,
+        "height": 600
+      }
+    }
+  },
+  "start_window": "background"
 }
-
-GET /api/sounds
-Response: [
-  { "id": "airhorn", "name": "Air Horn", "category": "memes", "duration": 2 },
-  { "id": "bruh", "name": "Bruh", "category": "memes", "duration": 1 }
-]
 ```
 
-### 1.3 Basic Web Dashboard
-**Goal**: Simple UI to trigger sounds
+### Hotkey Detection Logic
+```javascript
+// Background.js - Core hotkey handling
+class HotkeyManager {
+  constructor() {
+    this.hotkeyMappings = new Map();
+    this.apiClient = new ApiClient();
+    this.init();
+  }
 
-**Tasks**:
-- [ ] Create React app with sound button grid
-- [ ] Implement Socket.io client connection
-- [ ] Add server/channel selector dropdown
-- [ ] Create sound button component
-- [ ] Add loading states and error handling
-- [ ] Implement responsive design for mobile
+  async init() {
+    // Load hotkey mappings from backend
+    await this.loadHotkeyMappings();
+    
+    // Register custom hotkeys
+    this.registerHotkeys();
+    
+    // Listen for hotkey events
+    overwolf.settings.hotkeys.onPressed.addListener(
+      this.handleHotkeyPress.bind(this)
+    );
+  }
 
-**UI Components**:
-- SoundButton (clickable with icon/emoji)
-- ServerSelector (dropdown)
-- ChannelSelector (dropdown)
-- ConnectionStatus (indicator)
+  async loadHotkeyMappings() {
+    try {
+      const mappings = await this.apiClient.getHotkeys();
+      this.updateHotkeyMappings(mappings);
+    } catch (error) {
+      console.error('Failed to load hotkey mappings:', error);
+    }
+  }
 
-## Phase 2: Core Features (Week 3-4)
-
-### 2.1 Authentication System
-**Goal**: Secure access using Discord OAuth2
-
-**Tasks**:
-- [ ] Implement Discord OAuth2 flow
-- [ ] Create user sessions with JWT
-- [ ] Add user database table
-- [ ] Implement permission checking (server membership)
-- [ ] Add logout functionality
-
-### 2.2 Sound Management
-**Goal**: Organized sound library with categories
-
-**Tasks**:
-- [ ] Create sound upload system
-- [ ] Implement sound categories/tags
-- [ ] Add search functionality
-- [ ] Create favorite sounds feature
-- [ ] Implement sound preview in dashboard
-- [ ] Add custom sound upload (admin only)
-
-**Database Schema**:
-```sql
--- Sounds table
-CREATE TABLE sounds (
-  id SERIAL PRIMARY KEY,
-  filename VARCHAR(255),
-  display_name VARCHAR(100),
-  category VARCHAR(50),
-  tags TEXT[],
-  duration INTEGER,
-  file_size INTEGER,
-  created_at TIMESTAMP
-);
-
--- User favorites
-CREATE TABLE user_favorites (
-  user_id VARCHAR(255),
-  sound_id INTEGER,
-  PRIMARY KEY(user_id, sound_id)
-);
+  async handleHotkeyPress(event) {
+    const mapping = this.hotkeyMappings.get(event.name);
+    if (mapping && mapping.enabled) {
+      await this.apiClient.playSound(mapping.soundFile);
+    }
+  }
+}
 ```
 
-### 2.3 Multi-Server Support
-**Goal**: Bot works across multiple Discord servers
+### Backend Hotkey Storage
+```javascript
+// Hotkey storage service
+class HotkeyService {
+  constructor() {
+    this.hotkeyFile = path.join(__dirname, 'data', 'hotkeys.json');
+    this.loadHotkeys();
+  }
 
-**Tasks**:
-- [ ] Implement server-specific settings
-- [ ] Add per-server sound permissions
-- [ ] Create server onboarding flow
-- [ ] Add bot invite link generator
-- [ ] Implement server-specific sound libraries
+  loadHotkeys() {
+    try {
+      if (fs.existsSync(this.hotkeyFile)) {
+        const data = fs.readFileSync(this.hotkeyFile, 'utf8');
+        this.hotkeys = JSON.parse(data);
+      } else {
+        this.hotkeys = { hotkeys: [] };
+        this.saveHotkeys();
+      }
+    } catch (error) {
+      console.error('Error loading hotkeys:', error);
+      this.hotkeys = { hotkeys: [] };
+    }
+  }
 
-## Phase 3: Enhanced Features (Week 5-6)
+  validateHotkey(hotkey) {
+    // Check for conflicts
+    const conflicts = this.hotkeys.hotkeys.filter(h => 
+      h.keyCode === hotkey.keyCode &&
+      JSON.stringify(h.modifiers) === JSON.stringify(hotkey.modifiers) &&
+      h.id !== hotkey.id
+    );
+    
+    return {
+      valid: conflicts.length === 0,
+      conflicts: conflicts
+    };
+  }
+}
+```
 
-### 3.1 Performance Optimization
-**Goal**: Minimize latency and improve reliability
+## User Experience Flow
 
-**Tasks**:
-- [ ] Implement audio file caching
-- [ ] Add connection pooling for voice channels
-- [ ] Optimize WebSocket message handling
-- [ ] Implement rate limiting
-- [ ] Add request queuing system
-- [ ] Pre-process audio files to Opus format
+### Initial Setup
+1. User installs Overwolf app from app store
+2. App automatically connects to local Discord Soundboard backend
+3. User opens settings to configure first hotkey
+4. User records hotkey combination and selects sound
+5. Hotkey is immediately active for global use
 
-### 3.2 Advanced Features
-**Goal**: Improve user experience
+### Daily Usage
+1. User is playing games or using other applications
+2. User presses configured hotkey (e.g., Ctrl+F1)
+3. Overwolf app detects keypress in background
+4. App sends API request to backend
+5. Backend triggers Discord bot to play sound
+6. Sound plays in Discord voice channel
 
-**Tasks**:
-- [ ] Add volume control
-- [ ] Implement soundboard presets/pages
-- [ ] Add keyboard shortcuts
-- [ ] Create sound combo/sequence player
-- [ ] Add usage analytics
-- [ ] Implement sound cooldowns (anti-spam)
-
-### 3.3 Admin Dashboard
-**Goal**: Server administration tools
-
-**Tasks**:
-- [ ] Create admin panel for server owners
-- [ ] Add user permission management
-- [ ] Implement sound upload moderation
-- [ ] Add usage statistics view
-- [ ] Create sound blacklist feature
-
-## Phase 4: Production Ready (Week 7-8)
-
-### 4.1 Testing
-**Goal**: Ensure reliability and stability
-
-**Tasks**:
-- [ ] Write unit tests for API endpoints
-- [ ] Add integration tests for bot commands
-- [ ] Implement E2E tests for critical flows
-- [ ] Load testing with multiple concurrent users
-- [ ] Test failover and recovery scenarios
-
-### 4.2 Deployment
-**Goal**: Deploy to production environment
-
-**Tasks**:
-- [ ] Dockerize all components
-- [ ] Set up CI/CD pipeline (GitHub Actions)
-- [ ] Configure production database (PostgreSQL)
-- [ ] Move audio storage to S3/CDN
-- [ ] Set up monitoring (Datadog/New Relic)
-- [ ] Implement error tracking (Sentry)
-- [ ] Add backup strategies
-
-### 4.3 Documentation
-**Goal**: Comprehensive documentation
-
-**Tasks**:
-- [ ] Write API documentation
-- [ ] Create user guide
-- [ ] Add bot command documentation
-- [ ] Write deployment guide
-- [ ] Create troubleshooting guide
-
-## Security Considerations
-
-### Required Measures
-- [ ] Rate limiting on all endpoints
-- [ ] Input validation and sanitization
-- [ ] SQL injection prevention
-- [ ] XSS protection
-- [ ] CORS configuration
-- [ ] Environment variable management
-- [ ] Secure WebSocket connections (WSS)
-- [ ] File upload validation (type, size)
-- [ ] Discord permission verification
-
-## Monitoring & Metrics
-
-### Key Metrics to Track
-- Sound playback latency
-- API response times
-- WebSocket connection stability
-- Bot uptime per server
-- Most used sounds
-- Peak usage times
-- Error rates
-- User engagement
-
-## Scaling Considerations
-
-### Future Optimizations
-- **Horizontal Scaling**: Multiple bot instances with load balancing
-- **Sharding**: Discord bot sharding for 2500+ servers
-- **Caching Layer**: Redis for session and frequently accessed data
-- **CDN**: CloudFlare for static assets and audio files
-- **Message Queue**: RabbitMQ/Redis for command processing
-- **Microservices**: Split into separate services (auth, audio, bot)
-
-## Development Timeline
-
-| Week | Phase | Deliverables |
-|------|-------|-------------|
-| 1-2 | MVP Development | Working bot, basic API, simple dashboard |
-| 3-4 | Core Features | Auth, sound management, multi-server |
-| 5-6 | Enhanced Features | Optimizations, advanced features, admin tools |
-| 7-8 | Production Ready | Testing, deployment, documentation |
-
-## Success Criteria
-
-### MVP Success Metrics
-- [ ] Bot can join voice channels
-- [ ] Sounds play with <500ms latency
-- [ ] Dashboard loads in <2 seconds
-- [ ] Supports 10 concurrent users
-- [ ] 99% uptime during testing
-
-### Production Success Metrics
-- [ ] <200ms average playback latency
-- [ ] Support 100+ concurrent users
-- [ ] 99.9% uptime
-- [ ] <1% error rate
-- [ ] Support 50+ Discord servers
+### Configuration Management
+1. User opens hotkey settings (via Overwolf or web dashboard)
+2. User can add/edit/delete hotkey mappings
+3. Real-time conflict detection prevents issues
+4. Changes sync between Overwolf app and web interface
 
 ## Risk Mitigation
 
-### Potential Risks & Solutions
+### Performance Risks
+- **Issue**: Background app consuming too many resources
+- **Mitigation**: Implement efficient event handling and throttling
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Discord API rate limits | High | Implement queuing and caching |
-| Audio playback latency | High | Pre-process files, optimize network |
-| Scalability issues | Medium | Design for horizontal scaling from start |
-| Audio file storage costs | Medium | Implement file size limits, compression |
-| Abuse/spam | Medium | Rate limiting, moderation tools |
-| Discord ToS violations | High | Review ToS, implement compliance measures |
+### Compatibility Risks
+- **Issue**: Overwolf API changes breaking functionality
+- **Mitigation**: Use stable API versions and implement fallbacks
 
-## Next Steps
+### User Experience Risks
+- **Issue**: Complex setup process deterring users
+- **Mitigation**: Automated setup and clear documentation
 
-1. **Immediate Actions**:
-   - Create Discord application and bot
-   - Set up development environment
-   - Initialize Git repository
-   - Create project structure
+### Security Risks
+- **Issue**: Unauthorized access to hotkey triggering
+- **Mitigation**: Local-only API access and authentication tokens
 
-2. **First Sprint Goals**:
-   - Get bot playing sounds in voice channel
-   - Create minimal API
-   - Build basic dashboard prototype
+## Success Metrics
 
-3. **Questions to Resolve**:
-   - Hosting provider selection
-   - Custom vs. pre-uploaded sounds only
-   - Monetization strategy (if any)
-   - Open source vs. proprietary
+### Technical Metrics
+- Hotkey detection latency < 50ms
+- Background app memory usage < 50MB
+- 99.9% hotkey detection accuracy
 
-## Resources & References
+### User Experience Metrics
+- Setup completion time < 5 minutes
+- User adoption rate > 70%
+- Positive user feedback score > 4.5/5
 
-- [Discord.js Guide](https://discordjs.guide/)
-- [Discord Developer Portal](https://discord.com/developers/docs)
-- [@discordjs/voice Documentation](https://discord.js.org/#/docs/voice/main/general/welcome)
-- [Discord OAuth2 Documentation](https://discord.com/developers/docs/topics/oauth2)
-- [Socket.io Documentation](https://socket.io/docs/v4/)
+## Future Enhancements
 
----
+### Phase 2 Features
+- Hotkey sequences (e.g., Ctrl+S, then 1)
+- Context-aware hotkeys (game-specific)
+- Voice activation integration
+- Mobile companion app
 
-*This plan is designed for a POC that can scale to production. Adjust timeline and features based on available resources and specific requirements.*
+### Advanced Features
+- Machine learning for usage optimization
+- Cloud sync for hotkey configurations
+- Integration with streaming software
+- Custom sound effects processing
+
+## Conclusion
+
+This implementation plan provides a comprehensive approach to adding global hotkey functionality to the Discord Soundboard using Overwolf. The phased approach ensures manageable development cycles while maintaining system stability and user experience quality.
+
+The integration will significantly enhance the user experience by allowing instant sound triggering without interrupting gameplay or other activities, making the Discord Soundboard more practical for real-time use during gaming sessions.
