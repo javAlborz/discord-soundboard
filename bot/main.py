@@ -4,6 +4,7 @@ import os
 import asyncio
 import aiohttp
 import ctypes.util
+import socketio
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -36,6 +37,62 @@ class SoundboardBot:
         print(f"   BOT_MOCK_VOICE env var: '{os.getenv('BOT_MOCK_VOICE', 'NOT_SET')}'", flush=True)
         if self.mock_mode:
             print("🎭 Mock voice mode is ENABLED - voice connections will be simulated", flush=True)
+
+        # Initialize Socket.io client for backend communication
+        self.sio = socketio.AsyncClient()
+        self.setup_socketio_handlers()
+
+    def setup_socketio_handlers(self):
+        """Setup Socket.io event handlers"""
+        @self.sio.event
+        async def connect():
+            print("🔌 Connected to backend via Socket.io")
+
+        @self.sio.event
+        async def disconnect():
+            print("⚠️ Disconnected from backend")
+
+        @self.sio.event
+        async def play_sound(data):
+            """Handle play_sound events from backend"""
+            sound_name = data.get('sound')
+            triggered_by = data.get('triggered_by', 'unknown')
+            print(f"🎵 Received play_sound event: {sound_name} (triggered by: {triggered_by})")
+
+            if not sound_name:
+                print("❌ No sound name provided in play_sound event")
+                return
+
+            # Find the first available guild with voice connection
+            guild_id = None
+            for gid in self.voice_clients:
+                guild_id = gid
+                break
+
+            if not guild_id:
+                print("❌ No voice connections available to play sound")
+                return
+
+            # Construct sound path
+            sound_path = f"sounds/{sound_name}"
+            if not os.path.exists(sound_path):
+                print(f"❌ Sound file not found: {sound_path}")
+                return
+
+            # Play the sound
+            success = await self.play_sound(guild_id, sound_path)
+            if success:
+                print(f"✅ Successfully played {sound_name}")
+            else:
+                print(f"❌ Failed to play {sound_name}")
+
+    async def connect_to_backend(self):
+        """Connect to backend Socket.io server"""
+        try:
+            await self.sio.connect(self.backend_url)
+            print("🔌 Socket.io client connected to backend")
+        except Exception as e:
+            print(f"❌ Failed to connect to backend: {e}")
     
     async def connect_to_voice(self, guild_id, channel_id):
         """Connect to a voice channel"""
@@ -206,6 +263,9 @@ async def on_ready():
                 print(f"Notified backend: {len(guilds_info)} guilds, {len(voice_connections)} voice connections")
     except Exception as e:
         print(f"Failed to notify backend: {e}")
+
+    # Connect to backend via Socket.io for real-time communication
+    await soundboard.connect_to_backend()
 
 @bot.command(name='join')
 async def join_voice(ctx):

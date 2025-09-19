@@ -13,6 +13,7 @@ function App() {
   const [botStatus, setBotStatus] = useState({ connected: false });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('sounds');
+  const [hotkeys, setHotkeys] = useState([]);
 
   useEffect(() => {
     // Initialize socket connection
@@ -43,14 +44,33 @@ function App() {
     // Hotkey events
     newSocket.on('hotkey_added', (hotkey) => {
       console.log('Hotkey added:', hotkey);
+      // Refresh hotkeys after a short delay to allow backend to process
+      setTimeout(() => {
+        fetch(`${API_URL}/api/hotkeys`)
+          .then(response => response.ok ? response.json() : [])
+          .then(data => setHotkeys(data))
+          .catch(err => console.error('Failed to refresh hotkeys:', err));
+      }, 100);
     });
 
     newSocket.on('hotkey_updated', (hotkey) => {
       console.log('Hotkey updated:', hotkey);
+      setTimeout(() => {
+        fetch(`${API_URL}/api/hotkeys`)
+          .then(response => response.ok ? response.json() : [])
+          .then(data => setHotkeys(data))
+          .catch(err => console.error('Failed to refresh hotkeys:', err));
+      }, 100);
     });
 
     newSocket.on('hotkey_deleted', (hotkeyId) => {
       console.log('Hotkey deleted:', hotkeyId);
+      setTimeout(() => {
+        fetch(`${API_URL}/api/hotkeys`)
+          .then(response => response.ok ? response.json() : [])
+          .then(data => setHotkeys(data))
+          .catch(err => console.error('Failed to refresh hotkeys:', err));
+      }, 100);
     });
 
     // Cleanup on unmount
@@ -60,9 +80,35 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Fetch initial sounds
+    // Fetch initial sounds and hotkeys
     fetchSounds();
+    fetchHotkeys();
   }, []);
+
+  // Global hotkey listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Find matching hotkey
+      const matchingHotkey = hotkeys.find(hotkey =>
+        hotkey.enabled &&
+        hotkey.keyCode === e.keyCode &&
+        hotkey.modifiers.ctrl === e.ctrlKey &&
+        hotkey.modifiers.alt === e.altKey &&
+        hotkey.modifiers.shift === e.shiftKey
+      );
+
+      if (matchingHotkey) {
+        e.preventDefault();
+        playSound(matchingHotkey.soundFile);
+        console.log(`Hotkey triggered: ${matchingHotkey.name} -> ${matchingHotkey.soundFile}`);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [hotkeys]);
 
   const fetchSounds = async () => {
     try {
@@ -73,6 +119,18 @@ function App() {
       console.error('Failed to fetch sounds:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHotkeys = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/hotkeys`);
+      if (response.ok) {
+        const hotkeyData = await response.json();
+        setHotkeys(hotkeyData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch hotkeys:', error);
     }
   };
 
