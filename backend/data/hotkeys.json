@@ -3,11 +3,11 @@
     {
       "id": "7f4fbe4c-d872-40f4-b504-5d7ecbfef5b9",
       "name": "Test Hotkey",
-      "soundFile": "test.mp3",
-      "keyCode": 65,
+      "soundFile": "ceeday-huh-sound-effect.mp3",
+      "keyCode": 72,
       "modifiers": {
         "ctrl": true,
-        "alt": false,
+        "alt": true,
         "shift": false
       },
       "enabled": true,
