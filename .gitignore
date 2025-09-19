@@ -160,3 +160,6 @@ backend/test-sounds/
 # Cache
 .cache/
 *.cache
+
+# Project-specific files
+project-config.md
