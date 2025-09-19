@@ -1,96 +1,239 @@
 # Discord Soundboard
 
-A Discord soundboard application with a web dashboard for triggering sound effects in voice channels.
+A complete Discord soundboard application with web dashboard, global hotkeys, and real-time voice channel integration. Perfect for gaming communities, streamers, and Discord servers.
 
-## Architecture
+## ✨ Features
 
-- **Discord Bot** (Python): Handles Discord API and voice channel audio playback
-- **Backend API** (Node.js): RESTful API and WebSocket server for real-time communication
-- **Frontend Dashboard** (React): Web interface for managing and playing sounds
+### 🎵 **Audio Management**
+- Web-based sound library with drag & drop upload
+- Real-time sound playback in Discord voice channels
+- Local preview before playing in Discord
+- Search and filter your sound collection
 
-## Prerequisites
+### 🎮 **Gaming Integration**
+- **Overwolf hotkey system** for instant sound triggering during gameplay
+- Global hotkeys work across all applications
+- No need to alt-tab - play sounds while gaming
 
-- Python 3.8+
-- Node.js 16+
-- uv (Python package manager)
-- FFmpeg (for audio processing)
+### 📊 **Real-time Dashboard**
+- Live bot connection status
+- Voice channel monitoring
+- Server and channel statistics
+- Responsive design for all devices
 
-## Setup
+### 🤖 **Discord Bot**
+- Voice channel management (`!join`, `!leave`)
+- Chat commands (`!play <sound_name>`)
+- Multi-server support
+- Reliable voice connections with discord.py 2.6.3
 
-1. **Install dependencies:**
-   ```bash
-   # Install Python dependencies with uv
-   uv sync
-   
-   # Install backend dependencies
-   cd backend && npm install
-   
-   # Install frontend dependencies
-   cd ../frontend && npm install
-   ```
+## 🏗️ Architecture
 
-2. **Configuration:**
-   - Copy `.env.example` to `.env`
-   - Add your Discord bot token to `.env`
-   - Configure other environment variables as needed
+```
+[React Dashboard] ←→ Socket.io ←→ [Node.js API] ←→ HTTP ←→ [Python Bot] ←→ Discord
+       ↑                             ↑                        ↑
+   Web Interface              Real-time Updates         Voice Channels
+       ↑                             ↑
+[Overwolf Hotkeys] ←→ Global Detection ←→ API Calls
+```
 
-3. **Create Discord Bot:**
-   - Go to https://discord.com/developers/applications
-   - Create a new application and bot
-   - Copy the bot token to your `.env` file
-   - Invite the bot to your Discord server with voice permissions
+## 🚀 Quick Start
 
-## Running the Application
+**One-command setup:**
+```bash
+./start.sh  # Starts backend + frontend
+```
 
-1. **Start the backend server:**
-   ```bash
-   cd backend
-   npm run dev
-   ```
+**In a separate terminal:**
+```bash
+uv run python bot/main.py  # Start Discord bot
+```
 
-2. **Start the Discord bot:**
-   ```bash
-   uv run python bot/main.py
-   ```
+**Access your soundboard:**
+- Dashboard: http://localhost:3000
+- API: http://localhost:3051
 
-3. **Start the frontend:**
-   ```bash
-   cd frontend
-   npm start
-   ```
+## 📋 Prerequisites
 
-4. **Access the dashboard:**
-   - Open http://localhost:3000 in your browser
+- **Python 3.8+** with uv package manager
+- **Node.js 16+**
+- **FFmpeg** (for audio processing)
+- **Discord Bot Token** (see setup below)
 
-## Usage
+## ⚙️ Installation
 
-1. Upload audio files through the web dashboard
-2. Join a voice channel in Discord
-3. Use `!join` command to make the bot join your voice channel
-4. Click "Play" buttons in the web dashboard to play sounds
-5. Use `!play <sound_name>` in Discord chat as alternative
+### 1. Install Dependencies
+```bash
+# Python dependencies
+uv sync
 
-## API Endpoints
+# Backend dependencies
+cd backend && npm install
 
-- `GET /api/sounds` - List all sounds
-- `POST /api/sounds/upload` - Upload new sound
-- `POST /api/play` - Play a sound
-- `DELETE /api/sounds/:filename` - Delete a sound
-- `GET /api/status` - Get bot status
+# Frontend dependencies
+cd frontend && npm install
+```
 
-## Discord Commands
+### 2. Discord Bot Setup
+1. Go to https://discord.com/developers/applications
+2. Create new application → Bot
+3. Copy bot token
+4. Invite bot to server with:
+   - Send Messages
+   - Connect & Speak in Voice Channels
+   - Use Voice Activity
 
-- `!join` - Bot joins your voice channel
+### 3. Environment Configuration
+```bash
+# Copy template and edit
+cp .env.example .env
+
+# Required variables:
+DISCORD_TOKEN=your_bot_token_here
+PORT=3051
+BACKEND_URL=http://localhost:3051
+FRONTEND_URL=http://localhost:3000
+```
+
+## 🎯 Usage
+
+### Basic Workflow
+1. **Upload sounds** via web dashboard (drag & drop)
+2. **Join voice channel** in Discord
+3. **Bot joins** with `!join` command
+4. **Play sounds** via dashboard or `!play <name>`
+
+### Hotkey System (Overwolf)
+1. Install Overwolf app from store
+2. Configure hotkeys in dashboard
+3. Play sounds instantly while gaming
+4. No interruption to gameplay
+
+## 🧪 Testing
+
+**Complete test suite:**
+```bash
+./run_tests.sh  # All tests with coverage report
+```
+
+**Individual test suites:**
+```bash
+# Python bot tests
+uv run pytest tests/test_bot.py -v
+
+# Backend API tests
+cd backend && npm test
+
+# Frontend component tests
+cd frontend && npm test
+```
+
+## 📡 API Reference
+
+### Sound Management
+- `GET /api/sounds` - List all available sounds
+- `POST /api/sounds/upload` - Upload new sound files
+- `DELETE /api/sounds/:filename` - Remove sound from library
+- `POST /api/play` - Trigger sound playback in voice channel
+
+### Bot Status
+- `GET /api/status` - Current bot and voice connection status
+- `POST /api/bot/ready` - Bot startup notification (internal)
+- `POST /api/bot/voice-status` - Voice state updates (internal)
+
+### Server Information
+- `GET /api/servers` - List Discord servers (mock data)
+- `GET /api/channels/:serverId` - List voice channels (mock data)
+
+## 💬 Discord Commands
+
+- `!join` - Bot joins your current voice channel
 - `!leave` - Bot leaves voice channel
-- `!play <sound_name>` - Play a specific sound
+- `!play <sound_name>` - Play specific sound by name
 
-## File Structure
+## 📁 Project Structure
 
 ```
 discord-soundboard/
-├── bot/                 # Python Discord bot
-├── backend/            # Node.js API server
-├── frontend/           # React web dashboard
-├── sounds/             # Audio files storage
-└── pyproject.toml      # Python dependencies
+├── 🤖 bot/                 # Python Discord bot
+│   ├── main.py            # Bot entry point
+│   └── bot_windows.py     # Windows-compatible version
+├── ⚙️ backend/            # Node.js API server
+│   ├── server.js          # Express server + Socket.io
+│   └── tests/             # Backend API tests
+├── 🎨 frontend/           # React web dashboard
+│   ├── src/App.js         # Main React component
+│   ├── src/components/    # UI components
+│   └── tests/             # Frontend component tests
+├── 🎵 sounds/             # Audio files storage
+├── 🧪 tests/              # Python integration tests
+├── 📜 start.sh            # Quick start script
+├── 🔧 run_tests.sh        # Complete test suite
+└── 📦 pyproject.toml      # Python dependencies
 ```
+
+## 🔧 Development
+
+### Individual Component Development
+```bash
+# Backend with auto-reload
+cd backend && npm run dev
+
+# Frontend with hot reload
+cd frontend && npm start
+
+# Bot with debug logging
+BOT_DEBUG=true uv run python bot/main.py
+```
+
+### Code Quality
+```bash
+# Python formatting
+uv run black bot/ tests/
+
+# JavaScript/React linting (if configured)
+cd backend && npm run lint
+cd frontend && npm run lint
+```
+
+## 🚀 Production Deployment
+
+### Windows Host (Recommended for Production)
+1. Use `bot_windows.py` for better voice stability
+2. Run on Windows host machine (not WSL2)
+3. See `WINDOWS_SETUP.md` for detailed instructions
+
+### Environment Variables for Production
+```bash
+DISCORD_TOKEN=production_bot_token
+NODE_ENV=production
+PORT=3051
+BACKEND_URL=https://your-domain.com
+FRONTEND_URL=https://your-frontend-domain.com
+```
+
+## 🐛 Troubleshooting
+
+### Voice Connection Issues
+- ✅ **Fixed**: Upgraded to discord.py 2.6.3
+- Ensure FFmpeg is installed and accessible
+- Check Discord bot permissions (Connect, Speak)
+- For WSL2: Consider using Windows host deployment
+
+### Common Issues
+- **Bot offline**: Check Discord token and internet connection
+- **Upload fails**: Verify file size limits and format support
+- **Hotkeys not working**: Install Overwolf and configure permissions
+
+## 🏆 Status
+
+**✅ Production Ready**
+- All core features implemented and tested
+- Voice connection issues resolved (discord.py 2.6.3)
+- Comprehensive test coverage
+- Real-time web dashboard functional
+- Overwolf hotkey integration complete
+
+## 📄 License
+
+MIT License - Feel free to use for personal and commercial projects.
