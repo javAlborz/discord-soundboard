@@ -417,7 +417,7 @@ The application provides a complete Discord soundboard solution suitable for gam
 ### 📚 **Documentation:**
 - Complete setup instructions in README.md
 - Environment configuration guide
-- Comprehensive project config for development context
+- Development context documentation
 - Windows deployment alternative for production use
 
 ## 🎮 **Overwolf Integration Testing Results**
